@@ -1,0 +1,64 @@
+.first-container {
+  background-image: url('../img/first-bg.png');
+  width: 100%;
+  height: 100vw;
+  background-size: cover;
+}
+
+/* ------------------------------------------------------------ */
+
+.pic-container {
+  filter: drop-shadow(0px 4px 144px rgba(0, 0, 0, 0.25));
+}
+/* ------------------------------------------------------------ */
+
+.foot-container {
+  width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+
+
+@media only screen and (max-width: 600px) {
+  .first-container {
+    background-image: url('../img/mobile-first-bg.png');
+    width: 100%;
+    /* height: auto; */
+    height: 216.4vw;
+  }
+
+  
+
+  .foot-container {
+    margin-top: 15vw;
+  }
+
+   .table-scroll {
+    width: 85vw;
+    margin: auto;
+    overflow-x: auto;
+    direction: ltr;
+    scrollbar-width: thin;
+    z-index: 999;
+  }
+
+   .table-scroll::-webkit-scrollbar {
+    height: 8px;
+  }
+
+   .table-scroll::-webkit-scrollbar-track {
+    background-color: #e4e4e4;
+    border-radius: 4px;
+  }
+
+   .table-scroll::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: #5A5A5A;
+  }
+
+   .table-content {
+    width: 100%;
+    padding-bottom: 10px;
+  }
+}
