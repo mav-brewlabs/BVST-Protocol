@@ -3,7 +3,7 @@ import { Box } from "@material-ui/core";
 import { useAddress, useWeb3Context } from "src/hooks/web3Context";
 import styled from 'styled-components'
 
-function ConnectMenu({ theme, bigType = false, setNotification }) {
+function ConnectMenu({ theme, bigtype = false, setNotification }) {
 
   const { connect, disconnect, connected, web3, chainID } = useWeb3Context();
   const address = useAddress();
@@ -38,7 +38,7 @@ function ConnectMenu({ theme, bigType = false, setNotification }) {
   }, [web3, connected]);
 
   return (
-    <ConnectButton bigType={bigType}
+    <ConnectButton
       variant="contained"
       color="secondary"
       size="large"

@@ -1,10 +1,11 @@
 import React, { useState, ReactElement, useContext, useEffect, useMemo, useCallback } from "react";
 import Web3Modal from "web3modal";
-import { StaticJsonRpcProvider, JsonRpcProvider, Web3Provider, WebSocketProvider } from "@ethersproject/providers";
+import { StaticJsonRpcProvider, JsonRpcProvider, Web3Provider } from "@ethersproject/providers";
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { EnvHelper } from "../helpers/Environment";
-import { NodeHelper } from "../helpers/NodeHelper";
 import CoinbaseWalletSDK from "@coinbase/wallet-sdk";
+import { ChainList, DefaultChainID } from "src/config/constants";
+import getNodeUrl from "src/utils/getRpcUrl";
 
 /**
  * kept as function to mimic `getMainnetURI()`
@@ -67,10 +68,9 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
   // const [chainID, setChainID] = useState(1);
   const [address, setAddress] = useState("");
 
-  const [uri, setUri] = useState(getMainnetURI());
+  const [uri, setUri] = useState(getNodeUrl());
 
   const [provider, setProvider] = useState<JsonRpcProvider>(new StaticJsonRpcProvider(uri));
-  // const [provider, setProvider] = useState<JsonRpcProvider>(new StaticJsonRpcProvider("https://speedy-nodes-nyc.moralis.io/24036fe0cb35ad4bdc12155f/bsc/testnet"));
 
   const [web3Modal, setWeb3Modal] = useState<Web3Modal>(
     new Web3Modal({
@@ -81,18 +81,18 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
           package: WalletConnectProvider,
           options: {
             rpc: {
-              1: 'https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161'
+              [DefaultChainID]: getNodeUrl()
             },
-            chainID: 1
+            chainId: DefaultChainID
           },
         },
         coinbasewallet: {
           package: CoinbaseWalletSDK, // Required
           options: {
-            appName: "My Awesome App", // Required
+            appName: "BlocVest Vaults", // Required
             infuraId: "a4d2b749205d4d4197dd52f4f0e17df2", // Required
-            rpc: "https://mainnet.infura.io/v3/a4d2b749205d4d4197dd52f4f0e17df2", // Optional if `infuraId` is provided; otherwise it's required
-            chainId: 1, // Optional. It defaults to 1 if not provided
+            rpc: getNodeUrl(), // Optional if `infuraId` is provided; otherwise it's required
+            chainId: DefaultChainID, // Optional. It defaults to 1 if not provided
             darkMode: true // Optional. Use dark theme, defaults to false
           }
         },
@@ -166,7 +166,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
       console.warn("You are switching networks", EnvHelper.getOtherChainID());
       if (otherChainID === EnvHelper.getOtherChainID() || otherChainID === 4) {
         setChainID(otherChainID);
-        otherChainID === EnvHelper.getOtherChainID() ? setUri(getMainnetURI()) : setUri(getTestnetURI());
+        // otherChainID === EnvHelper.getOtherChainID() ? setUri(getNodeUrl()) : setUri(getTestnetURI());
         return true;
       }
       return false;
@@ -203,7 +203,7 @@ export const Web3ContextProvider: React.FC<{ children: ReactElement }> = ({ chil
 
         setConnected(false);
         setAddress('');
-        return { type: 'error', title: 'Error', detail: 'Wrong network, please switch to Ethereum mainnet' }
+        return { type: 'error', title: 'Error', detail: `Wrong network, please switch to ${(ChainList as any)[DefaultChainID]}` }
       }
       // Save everything after we've validated the right network.
       // Eventually we'll be fine without doing network validations.
