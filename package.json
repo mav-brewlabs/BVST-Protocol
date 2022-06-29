@@ -1,5 +1,5 @@
 {
-  "name": "@scaffold-eth/react-app",
+  "name": "blocvest-vaults",
   "version": "1.1.0",
   "browserslist": {
     "production": [
@@ -28,7 +28,7 @@
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@popperjs/core": "^2.9.2",
     "@ramp-network/ramp-instant-sdk": "^2.2.0",
-    "@reduxjs/toolkit": "^1.6.1",
+    "@reduxjs/toolkit": "^1.8.2",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
     "@testing-library/user-event": "^13.1.9",
@@ -75,6 +75,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^4.0.3",
     "react-swiper": "^0.1.5",
+    "react-toastify": "^8.0.1",
     "recharts": "^2.1.9",
     "redux": "^4.1.0",
     "redux-logger": "^3.0.6",
