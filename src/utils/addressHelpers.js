@@ -1,8 +1,8 @@
 import addresses from '../config/constants/contracts';
 
 export const getAddress = (address) => {
-    const chainId = process.env.REACT_APP_NETWORK_ID;
-    return address[chainId] ? address[chainId] : address[4];
+    const chainId = process.env.REACT_APP_CHAINID;
+    return address[chainId] ?? address[56];
 };
 
 export const getMulticallAddress = () => {
@@ -19,4 +19,8 @@ export const getAccumultorVaultAddress = () => {
 
 export const getTrickleVaultAddress = () => {
     return getAddress(addresses.trickleVault);
+};
+
+export const getOracleAddress = () => {
+    return getAddress(addresses.oracle);
 };

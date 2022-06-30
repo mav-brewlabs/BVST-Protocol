@@ -6,7 +6,6 @@ import { ToastContainer } from "react-toastify";
 
 import "react-toastify/dist/ReactToastify.css";
 
-
 import App from "./App";
 import store from "./state";
 
@@ -14,25 +13,21 @@ import { RefreshContextProvider } from "./contexts/RefreshContext";
 import { TokenPriceContextProvider } from "./contexts/TokenPriceContext";
 import { Web3ContextProvider } from "./hooks/web3Context";
 
-export default class Root extends Component {
-  constructor(props) {
-    super(props);
-  }
+const Root = () => {
+  return (
+    <Web3ContextProvider>
+      <Provider store={store}>
+        <RefreshContextProvider>
+          <TokenPriceContextProvider>
+            <BrowserRouter basename={"/"}>
+              <App />
+              <ToastContainer />
+            </BrowserRouter>
+          </TokenPriceContextProvider>
+        </RefreshContextProvider>
+      </Provider>
+    </Web3ContextProvider>
+  );
+};
 
-  render() {
-    return (
-      <Web3ContextProvider>
-        <Provider store={store}>
-          <RefreshContextProvider>
-            <TokenPriceContextProvider>
-              <BrowserRouter basename={"/"}>
-                <App />
-                <ToastContainer />
-              </BrowserRouter>
-            </TokenPriceContextProvider>
-          </RefreshContextProvider>
-        </Provider>
-      </Web3ContextProvider>
-    );
-  }
-}
+export default Root;

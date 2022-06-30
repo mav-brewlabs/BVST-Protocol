@@ -1,9 +1,14 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-
+import { createSlice } from '@reduxjs/toolkit';
+import fetchPrices from './fetchPrices';
 
 const initialState = {
   prices: {},
 };
+
+export const fetchPricesAsync = (chainId) => async (dispatch, getState) => {
+  const prices = fetchPrices(chainId)
+  dispatch(setPrices(prices))
+}
 
 export const appSlice = createSlice({
   name: 'app',
