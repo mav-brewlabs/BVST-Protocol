@@ -1,5 +1,4 @@
 /* eslint-disable global-require */
-import { Component } from "react";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";

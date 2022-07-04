@@ -108,7 +108,11 @@ a:hover svg {
     color: #ffe300 !important;
     text-decoration: underline;
 }
-
+.MuiSelect-select.MuiSelect-select {
+    padding-right: 0px !important;
+    color: #fff;
+}
+.MuiSelect-icon { display: none !important;}
 .ReactModal__Overlay {
     background-color: transparent !important;
   }

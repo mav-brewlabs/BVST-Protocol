@@ -1,29 +1,37 @@
-import { useMemo } from 'react'
-import { useActiveWeb3React } from './index'
-import LotteryAbi from '../config/abi/Lottery.json'
-import erc20ABI from '../config/abi/erc20.json'
-import { getLotteryAddress} from '../utils/addressHelpers'
-import { getContract } from '../utils/contractHelpers'
+import { useMemo } from "react";
+import ShareVaultAbi from "../config/abi/sharedholder.json";
+import AccumVaultAbi from "../config/abi/accumulator.json";
+import Erc20Abi from "../config/abi/erc20.json";
+import {
+  getAccumultorVaultAddress,
+  getSharedHoldersVaultAddress,
+} from "../utils/addressHelpers";
+import { getContract } from "../utils/contractHelpers";
+import { useWeb3Context } from "./web3Context";
 
 // returns null on errors
 function useContract(address, ABI) {
-  const { library, account } = useActiveWeb3React()
+  const { provider, address: account } = useWeb3Context();
 
   return useMemo(() => {
-    if (!address || !ABI || !library) return null
+    if (!address || !ABI || !provider) return null;
     try {
-      return getContract(address, ABI, library.getSigner())
+      return getContract(address, ABI, provider.getSigner());
     } catch (error) {
-      console.error('Failed to get contract', error)
-      return null
+      console.error("Failed to get contract", error);
+      return null;
     }
-  }, [address, ABI, library, account])
+  }, [address, ABI, provider, account]);
 }
 
-export function useLotteryContract(id) {
-  return useContract(getLotteryAddress(id), LotteryAbi)
+export function useShareVaultContract() {
+  return useContract(getSharedHoldersVaultAddress(), ShareVaultAbi);
+}
+
+export function useAccumulatorVaultContract() {
+  return useContract(getAccumultorVaultAddress(), AccumVaultAbi);
 }
 
 export function useTokenContract(tokenAddress) {
-  return useContract(tokenAddress, erc20ABI)
+  return useContract(tokenAddress, Erc20Abi);
 }

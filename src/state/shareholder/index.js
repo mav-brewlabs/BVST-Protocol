@@ -16,9 +16,11 @@ const initialState = {
     availableRewards: "0",
     lockDuration: 60,
     performanceFee: "0",
+    emergencyWithdraw: false,
     userData: {
       staked: "0",
       rewards: "0",
+      totalEarned: '0',
       usdStakedAmount: "0",
       lastDepositedTime: "0",
     },

@@ -1,26 +1,164 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { toast } from "react-toastify";
 import styled from "styled-components";
-import { Box, Input, TextField } from "@material-ui/core";
+import { Box, TextField } from "@material-ui/core";
 import StyledButton from "../../components/StyledButton";
 import { useMediaQuery } from "@material-ui/core";
 import { useWeb3Context } from "src/hooks/web3Context";
 import usePollShareVault from "src/state/shareholder/hooks";
-import { useShareVault } from "src/state/hooks";
+import { useShareVaultData } from "src/state/hooks";
+import useTokenAllowance from "src/hooks/useTokenAllowance";
 import useTokenBalance from "src/hooks/useTokenBalance";
-import { getBalanceNumber } from "src/utils/formatBalance";
+import { getSharedHoldersVaultAddress } from "src/utils/addressHelpers";
+import {
+  getFullDisplayBalance,
+  getDecimalAmount,
+  getBalanceNumber,
+} from "src/utils/formatBalance";
+import useShareVault from "./hooks";
+import { useDispatch } from "react-redux";
+import {
+  fetchShareVaultPublicDataAsync,
+  fetchShareVaultUserDataAsync,
+} from "src/state/shareholder";
 
 const ShareHolder = ({ curpage, setCurPage }) => {
   const { address: account } = useWeb3Context();
-  const [amount, setAmount] = useState(0);
+  const dispatch = useDispatch();
 
-  const shareVault = useShareVault();
-  const balance = useTokenBalance(shareVault.token.address, account);
+  const {
+    token,
+    rewardToken,
+    totalStaked,
+    prevTotal,
+    allTimeRewards,
+    availableRewards,
+    lockDuration,
+    performanceFee,
+    emergencyWithdraw,
+    userData,
+  } = useShareVaultData();
+
+  const balance = useTokenBalance(token.address, account);
+  const { allowance, onApprove } = useTokenAllowance(
+    token.address,
+    getSharedHoldersVaultAddress()
+  );
+  const { onStake, onWithdraw, onHarvest } = useShareVault(performanceFee);
+
+  const [amount, setAmount] = useState(0);
+  const [pendingTx, setPendingTx] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [depositing, setDepositing] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [harvesting, setHarvesting] = useState(false);
 
   usePollShareVault();
 
   const handleMax = () => {
     setAmount(getBalanceNumber(balance));
-  }
+  };
+
+  const handleApprove = async () => {
+    if (pendingTx) return;
+
+    setPendingTx(true);
+    setApproving(true);
+    try {
+      await onApprove();
+      toast.success(`${token.symbol} was approved for share holder vault!`);
+    } catch (e) {
+      console.log(e);
+      toast.error(e.data?.message ?? e.message.split("(")[0]);
+    }
+
+    setPendingTx(false);
+    setApproving(false);
+  };
+
+  const handleDeposit = async () => {
+    if (pendingTx) return;
+    if (amount === "" || amount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+    if (amount > getBalanceNumber(balance)) {
+      toast.error("You don't have enough tokens");
+      return;
+    }
+
+    setPendingTx(true);
+    setDepositing(true);
+    try {
+      await onStake(getDecimalAmount(amount, token.decimals).toJSON());
+      toast.success(`${token.symbol} was deposited into share holder vault!`);
+
+      dispatch(fetchShareVaultPublicDataAsync());
+      dispatch(fetchShareVaultUserDataAsync(account));
+    } catch (e) {
+      console.log(e);
+      toast.error(e.data?.message ?? e.message.split("(")[0]);
+    }
+    setPendingTx(false);
+    setDepositing(false);
+  };
+
+  const handleHarvest = async () => {
+    if(userData.rewards === '0') return
+    if (pendingTx) return;
+
+    setPendingTx(true);
+    setHarvesting(true);
+    try {
+      await onHarvest();
+      toast.success(`${rewardToken.symbol} was claimed!`);
+
+      dispatch(fetchShareVaultPublicDataAsync());
+      dispatch(fetchShareVaultUserDataAsync(account));
+    } catch (e) {
+      console.log(e);
+      toast.error(e.data?.message ?? e.message.split("(")[0]);
+    }
+
+    setPendingTx(false);
+    setHarvesting(false);
+  };
+
+  const handleWithdraw = async () => {
+    if (pendingTx) return;
+    // if(amount === '' || amount <= 0) {
+    //     toastError("Error", "Please enter a valid amount");
+    //     return
+    // }
+    // if(amount > getBalanceNumber(userData.staked)) {
+    //     toast.error("You don't have enough tokens in vault");
+    //     return
+    // }
+    if (
+      userData.lastDepositedTime + lockDuration * 60 * 60 > Date.now() / 1000 &&
+      !emergencyWithdraw
+    ) {
+      toast.error("You can't withdraw yet");
+      return;
+    }
+
+    setPendingTx(true);
+    setWithdrawing(true);
+    try {
+      // await onWithdraw(getDecimalAmount(amount, token.decimals).toJSON());
+      await onWithdraw(userData.staked);
+      toast.success(`${token.symbol} was withdrawn from share holder vault!`);
+
+      dispatch(fetchShareVaultPublicDataAsync());
+      dispatch(fetchShareVaultUserDataAsync(account));
+    } catch (e) {
+      console.log(e);
+      toast.error(e.data?.message ?? e.message.split("(")[0]);
+    }
+
+    setPendingTx(false);
+    setWithdrawing(false);
+  };
 
   const sm = useMediaQuery("(max-width: 1440px)");
   const xs = useMediaQuery("(max-width: 750px");
@@ -95,21 +233,42 @@ const ShareHolder = ({ curpage, setCurPage }) => {
                       fontSize: xs ? "15px" : "20px",
                       fontWeight: 600,
                     },
+                    placeHolder: "0",
                   }}
                   onChange={(e) => setAmount(e.target.value)}
                 />
               </Box>
             </InfoPanel>
-            <StyledButton width={xs ? "46px" : "63px"} height={"33px"} onClick={handleMax}>
+            <StyledButton
+              width={xs ? "46px" : "63px"}
+              height={"33px"}
+              onClick={handleMax}
+            >
               MAX
             </StyledButton>
           </Box>
           <Box mt={"20px"} display={"flex"} justifyContent={"space-between"}>
-            <StyledButton width={xs ? "98px" : "124px"} height={"33px"}>
-              ENTER VAULT
+            <StyledButton
+              width={xs ? "98px" : "124px"}
+              height={"33px"}
+              disabled={pendingTx}
+              onClick={
+                allowance.gt(0) && allowance.gte(amount)
+                  ? handleDeposit
+                  : handleApprove
+              }
+            >
+              {allowance.gt(0) && allowance.gte(amount)
+                ? `${depositing ? "Entering..." : "ENTER VAULT"}`
+                : `${approving ? "Approving..." : "APPROVE"}`}
             </StyledButton>
-            <StyledButton width={xs ? "80px" : "109px"} height={"33px"}>
-              EXIT VAULT
+            <StyledButton
+              width={xs ? "98px" : "124px"}
+              height={"33px"}
+              disabled={pendingTx}
+              onClick={handleWithdraw}
+            >
+              {`${withdrawing ? "Withdrawing..." : "EXIT VAULT"}`}
             </StyledButton>
           </Box>
           <Box
@@ -127,8 +286,10 @@ const ShareHolder = ({ curpage, setCurPage }) => {
                 type={"secondary"}
                 width={xs ? "135px" : "184px"}
                 height={"33px"}
+                disabled={pendingTx || userData.rewards === '0'}
+                onClick={handleHarvest}
               >
-                CLAIM MY REWARDS
+                {`${harvesting ? "Claiming..." : "CLAIM MY REWARDS"}`}
               </StyledButton>
               <Box
                 ml={xs ? "0" : "14px"}
@@ -142,7 +303,11 @@ const ShareHolder = ({ curpage, setCurPage }) => {
                 color={"#131043"}
                 mb={xs ? "10px" : "0"}
               >
-                2,500.00
+                {getFullDisplayBalance(
+                  userData.rewards,
+                  rewardToken.decimals,
+                  4
+                )}
               </Box>
             </Box>
           </Box>
@@ -173,8 +338,15 @@ const ShareHolder = ({ curpage, setCurPage }) => {
             lineHeight={xs ? "18px" : "24px"}
             fontWeight={500}
           >
-            <Box>25,000</Box>
-            <Box>.132%</Box>
+            <Box>
+              {getFullDisplayBalance(userData.staked, token.decimals, 2)}
+            </Box>
+            <Box>
+              {totalStaked === "0"
+                ? "0.00"
+                : ((+userData.staked * 100) / +totalStaked).toFixed(3)}
+              %
+            </Box>
           </Box>
           <Box
             display={"flex"}
@@ -194,8 +366,12 @@ const ShareHolder = ({ curpage, setCurPage }) => {
             lineHeight={xs ? "18px" : "24px"}
             fontWeight={500}
           >
-            <Box>25,000</Box>
-            <Box>25,000</Box>
+            <Box>
+              {getFullDisplayBalance(userData.rewards, rewardToken.decimals, 4)}
+            </Box>
+            <Box>
+              {getFullDisplayBalance(userData.totalEarned, rewardToken.decimals, 2)}
+            </Box>
           </Box>
           <Box
             mt={xs ? "30px" : "35px"}
@@ -229,8 +405,11 @@ const ShareHolder = ({ curpage, setCurPage }) => {
             lineHeight={xs ? "18px" : "24px"}
             fontWeight={500}
           >
-            <Box>235,000.00</Box>
-            <Box>$2,500.00</Box>
+            <Box>{getFullDisplayBalance(totalStaked, token.decimals, 2)}</Box>
+            <Box>
+              $
+              {getFullDisplayBalance(availableRewards, rewardToken.decimals, 2)}
+            </Box>
           </Box>
           <Box mt={"23px"} height={"2px"} bgcolor={"white"} width={"100%"} />
           <Box
@@ -253,7 +432,7 @@ const ShareHolder = ({ curpage, setCurPage }) => {
               fontWeight={500}
               lineHeight={"43px"}
             >
-              $23,500.00
+              ${getFullDisplayBalance(allTimeRewards, rewardToken.decimals, 2)}
             </Box>
           </Box>
         </Box>

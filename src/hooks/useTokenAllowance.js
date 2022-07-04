@@ -1,7 +1,9 @@
 import BigNumber from "bignumber.js";
-import ethers from "ethers";
-import { useCallback, useState } from "react";
+import { ethers } from "ethers";
+import { useCallback, useEffect, useState } from "react";
+import { BIG_ZERO } from "src/utils/bigNumber";
 import { getTokenContract } from "src/utils/contractHelpers";
+import useRefresh from "./useRefresh";
 import { useWeb3Context } from "./web3Context";
 
 const useTokenAllowance = (tokenAddress, spender) => {
@@ -29,12 +31,12 @@ const useTokenAllowance = (tokenAddress, spender) => {
   }, [account, tokenAddress, spender, fastRefresh]);
 
   const handleApprove = useCallback(async () => {
-    const contract = getTokenContract(tokenAddress, provider);
+    const contract = getTokenContract(tokenAddress, provider?.getSigner());
     const tx = await contract.approve(spender, ethers.constants.MaxUint256);
     const receipt = await tx.wait(2);
 
     return receipt.status;
-  }, [tokenAddress, spender]);
+  }, [tokenAddress, spender, provider]);
 
   return { allowance, onApprove: handleApprove };
 };

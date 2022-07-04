@@ -640,6 +640,11 @@
       },
       {
         "internalType": "uint256",
+        "name": "totalEarned",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
         "name": "rewardDebt",
         "type": "uint256"
       }

@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { BIG_ZERO } from "src/utils/bigNumber"
 import { getTokenContract } from "src/utils/contractHelpers"
 import useRefresh from "./useRefresh"
 import { useWeb3Context } from "./web3Context"

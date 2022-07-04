@@ -33,7 +33,7 @@ export const fetchShareVaultPublicData = async () => {
     lockDuration: new BigNumber(lockDuration).toNumber(),
     performanceFee: new BigNumber(performanceFee).toJSON(),
     allTimeRewards: new BigNumber(allTimeRewards).toJSON(),
-    availableRewardTokens: new BigNumber(availableRewardTokens).toJSON(),
+    availableRewards: new BigNumber(availableRewardTokens).toJSON(),
   };
 };
 
@@ -53,10 +53,10 @@ export const fetchShareVaultUserData = async (account) => {
   ];
   
   const [pendingRewards, userInfo] = await multicall(ShareVaultAbi, calls);
-  
   return {
     staked: new BigNumber(userInfo.amount._hex).toJSON(),
     usdStakedAmount: new BigNumber(userInfo.usdAmount._hex).toJSON(),
+    totalEarned: new BigNumber(userInfo.totalEarned._hex).toJSON(),
     rewards: new BigNumber(pendingRewards).toJSON(),
     lastDepositedTime: new BigNumber(userInfo.lastDepositTime._hex).toNumber(),
   }

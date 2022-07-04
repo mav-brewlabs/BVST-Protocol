@@ -8,7 +8,7 @@ export default {
         97: "0xF74B4981605407262185Da61c1e1c55665D9B53D",
     },
     shareVault: {
-        97: "0xb9C2f1757b66e5588497AfDf193B86d607162573",
+        97: "0xfBd35cA5cb388F5D34AA3995e26cA7e32a480f63",
     },
     accumulatorVault: {
         97: "",
